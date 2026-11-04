@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Packet Analyzer | Sanjivani COE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="branding">
+        <div class="logo-badge">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+            <line x1="6" y1="6" x2="6.01" y2="6"></line>
+            <line x1="6" y1="18" x2="6.01" y2="18"></line>
+          </svg>
+        </div>
+        <div>
+          <h1 class="project-title">Network Packet Analyzer</h1>
+          <p class="college-subtext">Department of Computer Engineering &bull; Sanjivani COE, Kopargaon</p>
+        </div>
+      </div>
+      <div class="header-meta">
+        <div class="team-info">
+          <span>Presented by: <strong>Omkar Jape (114)</strong> &amp; <strong>Tambe Pranav (112)</strong></span>
+          <span class="guide-tag">Guide: <strong>Prof. P. N. Kalavadekar</strong></span>
+        </div>
+        <div id="liveStatusBadge" class="status-badge stopped">
+          <span class="status-dot"></span>
+          <span id="statusText">STOPPED</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    
+    <!-- Control Panel -->
+    <section class="panel control-panel">
+      <div class="panel-row">
+        <div class="control-group">
+          <label for="captureModeSelect">Capture Mode</label>
+          <select id="captureModeSelect" class="form-select">
+            <option value="demo" selected>Demo Mode (Simulated Traffic - Safe)</option>
+            <option value="live">Live Capture Mode (Scapy / Network)</option>
+          </select>
+        </div>
+
+        <div class="control-group" id="interfaceGroup">
+          <label for="interfaceSelect">Network Interface</label>
+          <select id="interfaceSelect" class="form-select">
+            <option value="demo">Demo Network Adapter</option>
+          </select>
+        </div>
+
+        <div class="actions-group">
+          <button id="btnStart" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            Start Capture
+          </button>
+          <button id="btnStop" class="btn btn-danger" disabled>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            Stop
+          </button>
+          <button id="btnClear" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Clear
+          </button>
+          <a id="btnExport" href="/api/export" class="btn btn-outline" download>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export CSV
+          </a>
+        </div>
+      </div>
+      <div id="alertBanner" class="alert-banner hidden"></div>
+    </section>
+
+    <!-- Statistics Cards -->
+    <section class="stats-grid">
+      <div class="stat-card total-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-content">
+          <span class="stat-label">Total Packets</span>
+          <span class="stat-val" id="statTotal">0</span>
+        </div>
+      </div>
+      <div class="stat-card tcp-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-content">
+          <span class="stat-label">TCP Packets</span>
+          <span class="stat-val" id="statTcp">0</span>
+        </div>
+      </div>
+      <div class="stat-card udp-card">
+        <div class="stat-icon">🚀</div>
+        <div class="stat-content">
+          <span class="stat-label">UDP Packets</span>
+          <span class="stat-val" id="statUdp">0</span>
+        </div>
+      </div>
+      <div class="stat-card dns-card">
+        <div class="stat-icon">🌐</div>
+        <div class="stat-content">
+          <span class="stat-label">DNS Queries</span>
+          <span class="stat-val" id="statDns">0</span>
+        </div>
+      </div>
+      <div class="stat-card icmp-card">
+        <div class="stat-icon">📡</div>
+        <div class="stat-content">
+          <span class="stat-label">ICMP (Ping)</span>
+          <span class="stat-val" id="statIcmp">0</span>
+        </div>
+      </div>
+      <div class="stat-card bytes-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <span class="stat-label">Total Data</span>
+          <span class="stat-val" id="statBytes">0 KB</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Protocol Distribution Bar -->
+    <section class="distribution-panel">
+      <div class="dist-header">
+        <h3>Protocol Distribution Overview</h3>
+        <div class="legend-row">
+          <span class="legend-item"><span class="legend-color tcp-bg"></span> TCP</span>
+          <span class="legend-item"><span class="legend-color udp-bg"></span> UDP</span>
+          <span class="legend-item"><span class="legend-color dns-bg"></span> DNS</span>
+          <span class="legend-item"><span class="legend-color icmp-bg"></span> ICMP</span>
+          <span class="legend-item"><span class="legend-color other-bg"></span> Other</span>
+        </div>
+      </div>
+      <div class="progress-bar-container">
+        <div id="barTcp" class="bar-segment tcp-bg" style="width: 0%" title="TCP"></div>
+        <div id="barUdp" class="bar-segment udp-bg" style="width: 0%" title="UDP"></div>
+        <div id="barDns" class="bar-segment dns-bg" style="width: 0%" title="DNS"></div>
+        <div id="barIcmp" class="bar-segment icmp-bg" style="width: 0%" title="ICMP"></div>
+        <div id="barOther" class="bar-segment other-bg" style="width: 0%" title="Other"></div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Bar -->
+    <section class="panel filter-panel">
+      <div class="filter-inputs">
+        <div class="filter-item">
+          <label>Protocol Filter:</label>
+          <select id="filterProtocol" class="filter-select">
+            <option value="ALL">All Protocols</option>
+            <option value="TCP">TCP</option>
+            <option value="UDP">UDP</option>
+            <option value="DNS">DNS</option>
+            <option value="ICMP">ICMP</option>
+            <option value="HTTP">HTTP</option>
+            <option value="ARP">ARP</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>Source IP:</label>
+          <input type="text" id="filterSrc" class="filter-text" placeholder="e.g. 192.168.1">
+        </div>
+        <div class="filter-item">
+          <label>Destination IP:</label>
+          <input type="text" id="filterDst" class="filter-text" placeholder="e.g. 8.8.8.8">
+        </div>
+        <button id="btnResetFilters" class="btn-sm btn-outline">Reset Filters</button>
+      </div>
+      <div class="table-options">
+        <label class="checkbox-label">
+          <input type="checkbox" id="chkAutoScroll" checked> Auto-scroll to newest
+        </label>
+        <span class="packet-count-badge" id="visibleCountBadge">Showing 0 packets</span>
+      </div>
+    </section>
+
+    <!-- Live Packet Table -->
+    <section class="table-container">
+      <table class="packet-table" id="packetTable">
+        <thead>
+          <tr>
+            <th width="60">No.</th>
+            <th width="110">Time</th>
+            <th width="180">Source</th>
+            <th width="180">Destination</th>
+            <th width="100">Protocol</th>
+            <th width="80">Length</th>
+            <th>Info Summary</th>
+          </tr>
+        </thead>
+        <tbody id="packetTableBody">
+          <tr class="empty-row" id="emptyStateRow">
+            <td colspan="7">
+              <div class="empty-state">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <p>No packets captured yet. Click <strong>Start Capture</strong> to begin monitoring traffic!</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+
+  <!-- Packet Inspection Modal -->
+  <div id="packetModal" class="modal hidden">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span class="badge" id="modalProtocolBadge">TCP</span>
+          <h3 id="modalTitle">Packet #1 Details</h3>
+        </div>
+        <button class="modal-close" id="btnModalClose">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="modal-section">
+          <h4>Layer Hierarchy</h4>
+          <div class="layer-pill" id="modalLayers">Ethernet &gt; IPv4 &gt; TCP</div>
+        </div>
+
+        <div class="modal-section-grid">
+          <div class="detail-box">
+            <span class="box-label">Timestamp</span>
+            <span class="box-val" id="modalTime">-</span>
+          </div>
+          <div class="detail-box">
+            <span class="box-label">Total Size</span>
+            <span class="box-val" id="modalLength">-</span>
+          </div>
+          <div class="detail-box">
+            <span class="box-label">Source Address</span>
+            <span class="box-val" id="modalSrc">-</span>
+          </div>
+          <div class="detail-box">
+            <span class="box-label">Destination Address</span>
+            <span class="box-val" id="modalDst">-</span>
+          </div>
+          <div class="detail-box">
+            <span class="box-label">Source Port</span>
+            <span class="box-val" id="modalSrcPort">-</span>
+          </div>
+          <div class="detail-box">
+            <span class="box-label">Destination Port</span>
+            <span class="box-val" id="modalDstPort">-</span>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h4>Protocol Summary</h4>
+          <pre class="info-pre" id="modalInfo">-</pre>
+        </div>
+
+        <div class="modal-section">
+          <h4>Payload Inspection (Hex / ASCII Dump)</h4>
+          <pre class="hex-dump" id="modalPayload">-</pre>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
